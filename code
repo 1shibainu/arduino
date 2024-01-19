@@ -1,0 +1,65 @@
+#include "Arduino.h"
+
+#define CABIN_LIGHTS_SWITCH_PIN 2
+#define CABIN_LIGHTS_SWITCH_PIN2 3
+#define CABIN_LIGHTS_SWITCH_PIN3 4
+
+bool conditionMet1 = false;
+bool conditionMet2 = false;
+bool conditionMet3 = false;
+int previousSwitchState = 0;
+
+void setup() {
+  Serial.begin(9600);
+  pinModeSwitches();
+}
+
+void loop() {
+  checkSwitch(CABIN_LIGHTS_SWITCH_PIN, conditionMet1);
+  checkSwitch(CABIN_LIGHTS_SWITCH_PIN2, conditionMet2);
+  checkSwitch(CABIN_LIGHTS_SWITCH_PIN3, conditionMet3);
+
+  updateSwitchState();
+}
+
+void pinModeSwitches() {
+  pinMode(CABIN_LIGHTS_SWITCH_PIN, INPUT);
+  pinMode(CABIN_LIGHTS_SWITCH_PIN2, INPUT);
+  pinMode(CABIN_LIGHTS_SWITCH_PIN3, INPUT);
+}
+
+void checkSwitch(int switchPin, bool &conditionMet) {
+  if (digitalRead(switchPin) == HIGH && !conditionMet) {
+    conditionMet = true;
+  }
+
+  if (digitalRead(switchPin) == LOW && conditionMet) {
+    conditionMet = false;
+  }
+}
+
+void updateSwitchState() {
+  int switchState = 0;
+
+  if (conditionMet1) {
+    switchState += 1;
+  }
+
+  if (conditionMet2) {
+    switchState += 2;
+  }
+
+  if (conditionMet3) {
+    switchState += 4;
+  }
+
+  if (switchState != previousSwitchState) {
+    Serial.print("led: ");
+    Serial.println(switchState + 6);
+    previousSwitchState = switchState;
+    for (int pin = 7; pin <= 13; pin++) {
+      digitalWrite(pin, LOW);
+    }
+    digitalWrite(switchState + 6, HIGH);
+  }
+}
